@@ -1,0 +1,11 @@
+[package]
+name = "advent2024"
+version = "0.1.0"
+authors = ["Anisse Astier <anisse@astier.eu>"]
+edition = "2024"
+
+[dependencies]
+#itertools = "0.12.0"
+
+[features]
+ci_no_input = []

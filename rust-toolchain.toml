@@ -1,0 +1,4 @@
+[toolchain]
+# Let's use AoC to beta-test Rust edition 2024
+channel = "nightly"
+
