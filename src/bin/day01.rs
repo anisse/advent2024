@@ -10,14 +10,13 @@ fn main() {
 }
 fn parse(input: &str) -> (Vec<u32>, Vec<u32>) {
     let mut lists = (vec![], vec![]);
-    input
-        .lines()
-        .map(|l| {
-            let mut ll = ints(l);
-            lists.0.push(ll.next().unwrap());
-            lists.1.push(ll.next().unwrap());
-        })
-        .count();
+    ints(input).enumerate().for_each(|(i, v)| {
+        if i % 2 == 0 {
+            lists.0.push(v)
+        } else {
+            lists.1.push(v)
+        }
+    });
     lists
 }
 fn part1(mut lists: (Vec<u32>, Vec<u32>)) -> u32 {
