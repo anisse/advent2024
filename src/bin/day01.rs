@@ -8,7 +8,6 @@ fn main() {
     let res = part2(things);
     println!("Part 2: {}", res);
 }
-type ParsedItem = Vec<u32>;
 fn parse(input: &str) -> (Vec<u32>, Vec<u32>) {
     let mut lists = (vec![], vec![]);
     input
@@ -45,8 +44,8 @@ fn test() {
     let things = parse(sample!());
     //part 1
     let res = part1(things.clone());
-    assert_eq!(res, 42);
+    assert_eq!(res, 11);
     //part 2
     let res = part2(things);
-    assert_eq!(res, 42);
+    assert_eq!(res, 31);
 }
