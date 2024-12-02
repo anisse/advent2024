@@ -32,9 +32,6 @@ where
             }
             true
         })
-        .inspect(|r| {
-            dbg!(&r);
-        })
         .count()
 }
 
@@ -48,17 +45,17 @@ where
                 return true;
             }
             for i in 0..r.len() {
-                let mut r2 = r.clone();
-                r2.remove(i);
-                if test_report(&r2) {
+                if test_report_skipped(r, i) {
                     return true;
                 }
             }
             false
         })
-        .inspect(|r| {
-            dbg!(&r);
-        })
+        /*
+            .inspect(|r| {
+                dbg!(r);
+            })
+        */
         .count()
 }
 fn test_report(r: &[i16]) -> bool {
@@ -71,11 +68,18 @@ fn test_report(r: &[i16]) -> bool {
     true
 }
 fn test_report_skipped(r: &[i16], skip: usize) -> bool {
-    let inc = r[0] < r[1];
-    for x in r.windows(2) {
-        if !test_suite(x[0], x[1], inc) {
+    let mut it = r.iter().take(skip).chain(r.iter().skip(skip + 1));
+    let mut prev = it.next().unwrap();
+    let mut inc = false;
+    for (i, n) in it.enumerate() {
+        if i == 0 {
+            inc = prev < n;
+        }
+        if !test_suite(*prev, *n, inc) {
+            //println!("Unsafe {r:?} at {i} between {prev} and {n}, skipping {skip} ({inc})");
             return false;
         }
+        prev = n;
     }
     true
 }
