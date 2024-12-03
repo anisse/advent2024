@@ -20,18 +20,22 @@ fn part1(input: &str) -> u32 {
         .sum()
 }
 fn part2(input: &str) -> u32 {
-    let re =
-        Regex::new(r"mul\((?P<mul>[0-9]+,[0-9]+)\)|(?P<do>do\(\))|(?P<dont>don't\(\))").unwrap();
+    let re = Regex::new(
+        r"(?x)
+            mul\((?P<mul>[0-9]+,[0-9]+)\) |
+            (?P<do>do\(\)) |
+            (?P<dont>don't\(\))
+            ",
+    )
+    .unwrap();
     re.captures_iter(input)
         .map(|c| c.extract())
-        .scan(true, |keep, (_, [full])| {
-            match full {
-                "do()" => {
-                    *keep = true;
-                }
+        .scan(true, |keep, (_, [m])| {
+            match m {
+                "do()" => *keep = true,
                 "don't()" => *keep = false,
                 _ => {
-                    let mut i = ints(full);
+                    let mut i = ints(m);
                     if *keep {
                         return Some((i.next().unwrap(), i.next().unwrap()));
                     }
