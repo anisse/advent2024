@@ -57,11 +57,10 @@ fn part2(things: Vec<ParsedItem>) -> u32 {
 
 #[test]
 fn test() {
-    let things = parse(sample!());
     //part 1
-    let res = part1(things.clone());
-    assert_eq!(res, 42);
+    let res = part1(parse1(sample!()));
+    assert_eq!(res, 2 * 4 + 5 * 5 + 11 * 8 + 8 * 5);
     //part 2
-    let res = part2(things);
-    assert_eq!(res, 42);
+    let res = part2(parse2(sample!()));
+    assert_eq!(res, 48);
 }
