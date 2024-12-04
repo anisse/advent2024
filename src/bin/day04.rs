@@ -50,10 +50,12 @@ where
             let mut pos_in_word = 0;
 
             while x < (len_x as usize) && y < (len_y as usize) {
+                /*
                 println!(
                     "At {x},{y} / {inc:?}, {dir:?}, pos is {pos_in_word}, letter is {} vs {}",
                     word[pos_in_word] as char, grid[y][x] as char
                 );
+                */
                 if grid[y][x] == word[pos_in_word] {
                     pos_in_word += 1;
                 } else {
@@ -63,7 +65,7 @@ where
                     }
                 }
                 if pos_in_word == word.len() {
-                    println!("found!");
+                    //println!("found!");
                     count += 1;
                     pos_in_word = 0;
                 }
@@ -75,10 +77,10 @@ where
                 x = x_i as usize;
                 y = y_i as usize;
             }
-            println!();
+            //println!();
             i += 1;
         }
-        println!();
+        //println!();
     }
     count
 }
@@ -115,10 +117,12 @@ where
             let mut pos_in_word = 0;
 
             while x < (len_x as usize) && y < (len_y as usize) {
+                /*
                 println!(
                     "At {x},{y} / {inc:?}, {dir:?}, pos is {pos_in_word}, letter is {} vs {}",
                     word[pos_in_word] as char, grid[y][x] as char
                 );
+                */
                 if grid[y][x] == word[pos_in_word] {
                     pos_in_word += 1;
                 } else {
@@ -128,7 +132,7 @@ where
                     }
                 }
                 if pos_in_word == word.len() {
-                    println!("found!");
+                    //println!("found!");
                     pos_in_word = 0;
                     *a_positions
                         .entry((x as i32 - dir.0, y as i32 - dir.1))
@@ -142,10 +146,10 @@ where
                 x = x_i as usize;
                 y = y_i as usize;
             }
-            println!();
+            //println!();
             i += 1;
         }
-        println!();
+        //println!();
     }
     a_positions.iter().filter(|(_, x)| **x > 1).count()
 }
