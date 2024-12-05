@@ -38,7 +38,7 @@ fn part1(order: &[Order], updates: &[Update]) -> usize {
     let omap = order_graph(order);
     updates
         .iter()
-        .filter(|u| u.iter().is_sorted_by(ordered_by(&omap)))
+        .filter(|u| u.is_sorted_by(ordered_by(&omap)))
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
@@ -55,7 +55,7 @@ fn part2(order: &[Order], updates: &[Update]) -> usize {
     let omap = order_graph(order);
     updates
         .iter()
-        .filter(|u| !u.iter().is_sorted_by(ordered_by(&omap)))
+        .filter(|u| !u.is_sorted_by(ordered_by(&omap)))
         .cloned()
         .map(|u| fix_order(u, &omap))
         .map(|u| u[u.len() / 2] as usize)
@@ -65,7 +65,7 @@ fn part2(order: &[Order], updates: &[Update]) -> usize {
 fn fix_order(mut u: Update, omap: &OrderMap) -> Update {
     let mut s = ordered_by(omap);
     u.sort_by(|a, b| {
-        if s(&a, &b) {
+        if s(a, b) {
             return std::cmp::Ordering::Less;
         }
         std::cmp::Ordering::Greater
@@ -73,7 +73,7 @@ fn fix_order(mut u: Update, omap: &OrderMap) -> Update {
     u
 }
 
-fn ordered_by(omap: &OrderMap) -> impl FnMut(&&u8, &&u8) -> bool {
+fn ordered_by(omap: &OrderMap) -> impl FnMut(&u8, &u8) -> bool {
     |a, b| {
         if let Some(l) = omap.get(a) {
             if l.contains(b) {
