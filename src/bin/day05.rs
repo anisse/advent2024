@@ -35,18 +35,15 @@ fn parse(input: &str) -> (Vec<Order>, Vec<Update>) {
 }
 
 fn part1(order: &[Order], updates: &[Update]) -> usize {
-    let (obefore, oafter) = order_graph(order);
+    let (obefore, oafter) = order_graphs(order);
     updates
         .iter()
         .filter(|u| ordered(u, &obefore, &oafter))
-        .inspect(|u| {
-            println!("is ok: {u:?}");
-        })
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
 type OrderMap = HashMap<u8, HashSet<u8>>;
-fn order_graph(order: &[Order]) -> (OrderMap, OrderMap) {
+fn order_graphs(order: &[Order]) -> (OrderMap, OrderMap) {
     let mut order_after = HashMap::new();
     let mut order_before = HashMap::new();
     order.iter().cloned().for_each(|(a, b)| {
@@ -75,25 +72,20 @@ fn ordered(u: &Update, obefore: &OrderMap, oafter: &OrderMap) -> bool {
 }
 
 fn part2(order: &[Order], updates: &[Update]) -> usize {
-    let (obefore, oafter) = order_graph(order);
+    let (obefore, oafter) = order_graphs(order);
     updates
         .iter()
         .filter(|u| !ordered(u, &obefore, &oafter))
         .cloned()
-        .map(|u| fix_order(u, &obefore, &oafter))
+        .map(|u| fix_order(u, &obefore))
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
 
-fn fix_order(mut u: Update, obefore: &OrderMap, oafter: &OrderMap) -> Update {
+fn fix_order(mut u: Update, obefore: &OrderMap) -> Update {
     u.sort_by(|a, b| {
         if let Some(l) = obefore.get(a) {
             if l.contains(b) {
-                return std::cmp::Ordering::Less;
-            }
-        }
-        if let Some(l) = oafter.get(b) {
-            if l.contains(a) {
                 return std::cmp::Ordering::Less;
             }
         }
