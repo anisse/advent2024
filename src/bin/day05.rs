@@ -53,14 +53,21 @@ fn part1(order: &[Order], updates: &[Update]) -> usize {
 }
 
 fn verify_order(order: &[Order], updates: &[Update]) -> usize {
-    let o = order_graph(order);
+    let (obefore, oafter) = order_graph(order);
     updates
         .iter()
         .filter(|u| {
             for i in 0..u.len() {
                 for j in (i + 1)..u.len() {
-                    if !is_after(u[i], u[j], &o, &mut HashSet::new()) {
-                        return false;
+                    if let Some(l) = oafter.get(&u[i]) {
+                        if l.contains(&u[j]) {
+                            return false;
+                        }
+                    }
+                    if let Some(l) = obefore.get(&u[j]) {
+                        if l.contains(&u[i]) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -76,16 +83,16 @@ fn verify_order(order: &[Order], updates: &[Update]) -> usize {
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
-type OrderMap = HashMap<u8, Vec<u8>>;
-fn order_graph(order: &[Order]) -> OrderMap {
+type OrderMap = HashMap<u8, HashSet<u8>>;
+fn order_graph(order: &[Order]) -> (OrderMap, OrderMap) {
     let mut order_after = HashMap::new();
-    //let mut order_before = HashMap::new();
+    let mut order_before = HashMap::new();
     //let mut full = vec![];
     order.iter().cloned().for_each(|(a, b)| {
-        order_after.entry(a).or_insert(vec![]).push(b);
-        //order_before.entry(b).or_insert(vec![]).push(a);
+        order_after.entry(a).or_insert(HashSet::new()).insert(b);
+        order_before.entry(b).or_insert(HashSet::new()).insert(a);
     });
-    order_after
+    (order_after, order_before)
 }
 
 fn is_after(a: u8, b: u8, o: &OrderMap, visited: &mut HashSet<u8>) -> bool {
