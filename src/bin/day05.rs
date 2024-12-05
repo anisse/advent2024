@@ -89,15 +89,24 @@ fn order_graph(order: &[Order]) -> OrderMap {
 }
 
 fn is_after(a: u8, b: u8, o: &OrderMap, visited: &mut HashSet<u8>) -> bool {
-    //println!("Checking {a} before {b}");
+    //(0..(visited.len())).for_each(|_| print! {" "});
+    //println!("Checking {a} -> {b}");
     visited.insert(a);
     // We look for b in the graph after a
-    match o.get(&a) {
-        Some(l) => l
-            .iter()
-            .any(|x| !visited.contains(x) && (*x == b || is_after(*x, b, o, visited))),
+    let ret = match o.get(&a) {
+        Some(l) => l.iter().any(|x| {
+            if *x == b {
+                return true;
+            }
+            if visited.contains(x) {
+                return false;
+            }
+            is_after(*x, b, o, visited)
+        }),
         None => false,
-    }
+    };
+    visited.remove(&a);
+    ret
 }
 
 fn part2(order: &[Order], updates: &[Update]) -> usize {
