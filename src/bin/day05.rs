@@ -38,23 +38,7 @@ fn part1(order: &[Order], updates: &[Update]) -> usize {
     let (obefore, oafter) = order_graph(order);
     updates
         .iter()
-        .filter(|u| {
-            for i in 0..u.len() {
-                for j in (i + 1)..u.len() {
-                    if let Some(l) = oafter.get(&u[i]) {
-                        if l.contains(&u[j]) {
-                            return false;
-                        }
-                    }
-                    if let Some(l) = obefore.get(&u[j]) {
-                        if l.contains(&u[i]) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            true
-        })
+        .filter(|u| ordered(u, &obefore, &oafter))
         .inspect(|u| {
             println!("is ok: {u:?}");
         })
@@ -72,8 +56,50 @@ fn order_graph(order: &[Order]) -> (OrderMap, OrderMap) {
     (order_after, order_before)
 }
 
+fn ordered(u: &Update, obefore: &OrderMap, oafter: &OrderMap) -> bool {
+    for i in 0..u.len() {
+        for j in (i + 1)..u.len() {
+            if let Some(l) = oafter.get(&u[i]) {
+                if l.contains(&u[j]) {
+                    return false;
+                }
+            }
+            if let Some(l) = obefore.get(&u[j]) {
+                if l.contains(&u[i]) {
+                    return false;
+                }
+            }
+        }
+    }
+    true
+}
+
 fn part2(order: &[Order], updates: &[Update]) -> usize {
-    42
+    let (obefore, oafter) = order_graph(order);
+    updates
+        .iter()
+        .filter(|u| !ordered(u, &obefore, &oafter))
+        .cloned()
+        .map(|u| fix_order(u, &obefore, &oafter))
+        .map(|u| u[u.len() / 2] as usize)
+        .sum()
+}
+
+fn fix_order(mut u: Update, obefore: &OrderMap, oafter: &OrderMap) -> Update {
+    u.sort_by(|a, b| {
+        if let Some(l) = obefore.get(a) {
+            if l.contains(b) {
+                return std::cmp::Ordering::Less;
+            }
+        }
+        if let Some(l) = oafter.get(b) {
+            if l.contains(a) {
+                return std::cmp::Ordering::Less;
+            }
+        }
+        std::cmp::Ordering::Greater
+    });
+    u
 }
 
 #[test]
@@ -84,5 +110,5 @@ fn test() {
     assert_eq!(res, 143);
     //part 2
     let res = part2(&o, &u);
-    assert_eq!(res, 42);
+    assert_eq!(res, 123);
 }
