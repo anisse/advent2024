@@ -35,63 +35,53 @@ fn parse(input: &str) -> (Vec<Order>, Vec<Update>) {
 }
 
 fn part1(order: &[Order], updates: &[Update]) -> usize {
-    let (obefore, oafter) = order_graphs(order);
+    let omap = order_graph(order);
     updates
         .iter()
-        .filter(|u| ordered(u, &obefore, &oafter))
+        .filter(|u| u.iter().is_sorted_by(ordered_by(&omap)))
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
 type OrderMap = HashMap<u8, HashSet<u8>>;
-fn order_graphs(order: &[Order]) -> (OrderMap, OrderMap) {
-    let mut order_after = HashMap::new();
-    let mut order_before = HashMap::new();
+fn order_graph(order: &[Order]) -> OrderMap {
+    let mut order_map = HashMap::new();
     order.iter().cloned().for_each(|(a, b)| {
-        order_after.entry(a).or_insert(HashSet::new()).insert(b);
-        order_before.entry(b).or_insert(HashSet::new()).insert(a);
+        order_map.entry(a).or_insert(HashSet::new()).insert(b);
     });
-    (order_after, order_before)
-}
-
-fn ordered(u: &Update, obefore: &OrderMap, oafter: &OrderMap) -> bool {
-    for i in 0..u.len() {
-        for j in (i + 1)..u.len() {
-            if let Some(l) = oafter.get(&u[i]) {
-                if l.contains(&u[j]) {
-                    return false;
-                }
-            }
-            if let Some(l) = obefore.get(&u[j]) {
-                if l.contains(&u[i]) {
-                    return false;
-                }
-            }
-        }
-    }
-    true
+    order_map
 }
 
 fn part2(order: &[Order], updates: &[Update]) -> usize {
-    let (obefore, oafter) = order_graphs(order);
+    let omap = order_graph(order);
     updates
         .iter()
-        .filter(|u| !ordered(u, &obefore, &oafter))
+        .filter(|u| !u.iter().is_sorted_by(ordered_by(&omap)))
         .cloned()
-        .map(|u| fix_order(u, &obefore))
+        .map(|u| fix_order(u, &omap))
         .map(|u| u[u.len() / 2] as usize)
         .sum()
 }
 
-fn fix_order(mut u: Update, obefore: &OrderMap) -> Update {
+fn fix_order(mut u: Update, omap: &OrderMap) -> Update {
+    let mut s = ordered_by(omap);
     u.sort_by(|a, b| {
-        if let Some(l) = obefore.get(a) {
-            if l.contains(b) {
-                return std::cmp::Ordering::Less;
-            }
+        if s(&a, &b) {
+            return std::cmp::Ordering::Less;
         }
         std::cmp::Ordering::Greater
     });
     u
+}
+
+fn ordered_by(omap: &OrderMap) -> impl FnMut(&&u8, &&u8) -> bool {
+    |a, b| {
+        if let Some(l) = omap.get(a) {
+            if l.contains(b) {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 #[test]
