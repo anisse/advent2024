@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use advent2024::*;
 fn main() {
     let things = parse(input!());
@@ -45,7 +47,7 @@ impl From<u8> for Dir {
         }
     }
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Coord(i32, i32);
 impl Coord {
     fn y(&self) -> usize {
@@ -146,20 +148,29 @@ fn start_pos(map: MapRef) -> Coord {
 fn part2(map: MapRef) -> usize {
     let spos = start_pos(map);
     let dir = North;
-    let mut count = 0;
+    let mut obstacles = HashSet::<Coord>::new();
     let mut map2 = map.to_vec();
-    //visited[ipos.y()][ipos.x()] = Some(dir);
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; map[0].len()]; map.len()];
     for (pos, dir) in spos.iter(map, dir) {
         //dbg!(pos);
         //dbg!(dir);
-        //visited[pos.y()][pos.x()] = Some(dir.);
 
-        let next = pos + dir.to_coord();
-        if next.valid_for(map) && map[next.y()][next.x()] != b'#' {
-            let mut visited: Vec<Vec<Option<Dir>>> = vec![vec![None; map[0].len()]; map.len()];
+        let next = pos.iter(map, dir).next();
+        if next.is_none() {
+            continue;
+        }
+        let (next, _) = next.unwrap();
+        if next.valid_for(map)
+            && map[next.y()][next.x()] != b'#'
+            && next != spos
+            && !obstacles.contains(&next)
+            && !visited[next.y()][next.x()]
+        {
+            let mut visited_loop: Vec<Vec<Option<Dir>>> = vec![vec![None; map[0].len()]; map.len()];
             /*
             println!(
-                "{count}: At ({},{}) Evaluating block at ({},{}) {dir:?}",
+                "{}: At ({},{}) Evaluating block at ({},{}) {dir:?}",
+                obstacles.len(),
                 pos.x(),
                 pos.y(),
                 next.x(),
@@ -171,54 +182,23 @@ fn part2(map: MapRef) -> usize {
                 //dbg!(pos2);
                 //dbg!(dir2);
                 //dbg!(map[pos2.y()][pos2.x()]);
-                if let Some(d) = visited[pos2.y()][pos2.x()] {
+                if let Some(d) = visited_loop[pos2.y()][pos2.x()] {
                     if d == dir2 {
-                        count += 1;
+                        obstacles.insert(next);
                         //println!(".");
                         break;
                     }
                 }
-                visited[pos2.y()][pos2.x()] = Some(dir2);
+                visited_loop[pos2.y()][pos2.x()] = Some(dir2);
             }
+            //map2[next.y()][next.x()] = b'O';
+            //_print_dir_map(&visited_loop, &map2);
             map2[next.y()][next.x()] = b'.';
-            //_print_dir_map(&visited, map);
         }
-        //visited[pos.y()][pos.x()] = Some(dir);
+        visited[pos.y()][pos.x()] = true;
     }
-    /*
-    while ipos.valid_for(map) {
-        let next = ipos + dir.to_coord();
-        if next.valid_for(map)
-            && map[next.y()][next.x()] != b'#'
-            && visited_same_dir(map, ipos, dir.rotate(), &visited)
-        {
-            count += 1;
-        }
-        visited[ipos.y()][ipos.x()] = Some(dir);
-        if next.valid_for(map) && map[next.y()][next.x()] == b'#' {
-            dir = dir.rotate();
-            continue;
-        }
-        ipos = next;
-    }
-    */
-    count
-    //visited.into_iter().flatten().filter(|x| *x).count()
+    obstacles.len()
 }
-
-/*
-fn visited_same_dir(map: MapRef, mut pos: Coord, dir: Dir, visited: &[Vec<Option<Dir>>]) -> bool {
-    while pos.valid_for(map) {
-        if let Some(d) = visited[pos.y()][pos.x()] {
-            if d == dir {
-                return true;
-            }
-        }
-        pos = pos + dir.to_coord();
-    }
-    false
-}
-*/
 
 #[test]
 fn test() {
