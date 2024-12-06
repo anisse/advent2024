@@ -57,6 +57,13 @@ impl Coord {
     fn valid_for(&self, map: MapRef) -> bool {
         self.0 >= 0 && self.0 < map[0].len() as i32 && self.1 >= 0 && self.1 < map.len() as i32
     }
+    fn iter<'a>(&self, map: MapRef<'a>, dir: Dir) -> Iter<'a> {
+        Iter {
+            map,
+            pos: *self,
+            dir,
+        }
+    }
 }
 impl From<(usize, usize)> for Coord {
     fn from(value: (usize, usize)) -> Self {
@@ -70,19 +77,34 @@ impl std::ops::Add<Self> for Coord {
         Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
-fn part1(map: MapRef) -> usize {
-    let mut ipos = start_pos(map);
-    let mut dir = North;
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; map[0].len()]; map.len()];
-    while ipos.valid_for(map) {
-        visited[ipos.y()][ipos.x()] = true;
-        let next = ipos + dir.to_coord();
-        if next.valid_for(map) && map[next.y()][next.x()] == b'#' {
-            dir = dir.rotate();
-            continue;
+struct Iter<'a> {
+    map: MapRef<'a>,
+    pos: Coord,
+    dir: Dir,
+}
+impl Iterator for Iter<'_> {
+    type Item = (Coord, Dir);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let next = self.pos + self.dir.to_coord();
+        if !next.valid_for(self.map) {
+            return None;
         }
-        ipos = next;
-        //_print_map(&visited);
+        if self.map[next.y()][next.x()] == b'#' {
+            self.dir = self.dir.rotate();
+            return self.next();
+        }
+        self.pos = next;
+        Some((self.pos, self.dir))
+    }
+}
+fn part1(map: MapRef) -> usize {
+    let ipos = start_pos(map);
+    let dir = North;
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; map[0].len()]; map.len()];
+    visited[ipos.y()][ipos.x()] = true;
+    for (pos, _) in ipos.iter(map, dir) {
+        visited[pos.y()][pos.x()] = true;
     }
     visited.into_iter().flatten().filter(|x| *x).count()
 }
@@ -91,6 +113,18 @@ fn _print_map(map: &[Vec<bool>]) {
     map.iter().for_each(|l| {
         l.iter()
             .for_each(|c| if *c { print!("x") } else { print!(".") });
+        println!();
+    })
+}
+fn _print_dir_map(map: &[Vec<Option<Dir>>], map2: MapRef) {
+    map.iter().zip(map2.iter()).for_each(|(l, l2)| {
+        l.iter().zip(l2.iter()).for_each(|(c, c2)| match *c {
+            Some(North) => print!("^"),
+            Some(West) => print!("<"),
+            Some(South) => print!("v"),
+            Some(East) => print!(">"),
+            None => print!("{}", *c2 as char),
+        });
         println!();
     })
 }
@@ -110,10 +144,48 @@ fn start_pos(map: MapRef) -> Coord {
 }
 
 fn part2(map: MapRef) -> usize {
-    let mut ipos = start_pos(map);
-    let mut dir = North;
-    let mut visited: Vec<Vec<Option<Dir>>> = vec![vec![None; map[0].len()]; map.len()];
+    let spos = start_pos(map);
+    let dir = North;
     let mut count = 0;
+    let mut map2 = map.to_vec();
+    //visited[ipos.y()][ipos.x()] = Some(dir);
+    for (pos, dir) in spos.iter(map, dir) {
+        //dbg!(pos);
+        //dbg!(dir);
+        //visited[pos.y()][pos.x()] = Some(dir.);
+
+        let next = pos + dir.to_coord();
+        if next.valid_for(map) && map[next.y()][next.x()] != b'#' {
+            let mut visited: Vec<Vec<Option<Dir>>> = vec![vec![None; map[0].len()]; map.len()];
+            /*
+            println!(
+                "{count}: At ({},{}) Evaluating block at ({},{}) {dir:?}",
+                pos.x(),
+                pos.y(),
+                next.x(),
+                next.y()
+            );
+            */
+            map2[next.y()][next.x()] = b'#';
+            for (pos2, dir2) in pos.iter(&map2, dir.rotate()) {
+                //dbg!(pos2);
+                //dbg!(dir2);
+                //dbg!(map[pos2.y()][pos2.x()]);
+                if let Some(d) = visited[pos2.y()][pos2.x()] {
+                    if d == dir2 {
+                        count += 1;
+                        //println!(".");
+                        break;
+                    }
+                }
+                visited[pos2.y()][pos2.x()] = Some(dir2);
+            }
+            map2[next.y()][next.x()] = b'.';
+            //_print_dir_map(&visited, map);
+        }
+        //visited[pos.y()][pos.x()] = Some(dir);
+    }
+    /*
     while ipos.valid_for(map) {
         let next = ipos + dir.to_coord();
         if next.valid_for(map)
@@ -129,10 +201,12 @@ fn part2(map: MapRef) -> usize {
         }
         ipos = next;
     }
+    */
     count
     //visited.into_iter().flatten().filter(|x| *x).count()
 }
 
+/*
 fn visited_same_dir(map: MapRef, mut pos: Coord, dir: Dir, visited: &[Vec<Option<Dir>>]) -> bool {
     while pos.valid_for(map) {
         if let Some(d) = visited[pos.y()][pos.x()] {
@@ -144,6 +218,7 @@ fn visited_same_dir(map: MapRef, mut pos: Coord, dir: Dir, visited: &[Vec<Option
     }
     false
 }
+*/
 
 #[test]
 fn test() {
