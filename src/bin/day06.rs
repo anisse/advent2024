@@ -13,7 +13,7 @@ type MapRef<'a> = &'a [Vec<u8>];
 fn parse(input: &str) -> Map {
     input.lines().map(|l| l.bytes().collect()).collect()
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Dir {
     North = 0,
     East = 1,
@@ -71,8 +71,32 @@ impl std::ops::Add<Self> for Coord {
     }
 }
 fn part1(map: MapRef) -> usize {
-    let pos = map
-        .iter()
+    let mut ipos = start_pos(map);
+    let mut dir = North;
+    let mut visited: Vec<Vec<bool>> = vec![vec![false; map[0].len()]; map.len()];
+    while ipos.valid_for(map) {
+        visited[ipos.y()][ipos.x()] = true;
+        let next = ipos + dir.to_coord();
+        if next.valid_for(map) && map[next.y()][next.x()] == b'#' {
+            dir = dir.rotate();
+            continue;
+        }
+        ipos = next;
+        //_print_map(&visited);
+    }
+    visited.into_iter().flatten().filter(|x| *x).count()
+}
+
+fn _print_map(map: &[Vec<bool>]) {
+    map.iter().for_each(|l| {
+        l.iter()
+            .for_each(|c| if *c { print!("x") } else { print!(".") });
+        println!();
+    })
+}
+
+fn start_pos(map: MapRef) -> Coord {
+    map.iter()
         .enumerate()
         .flat_map(|(y, l)| {
             l.iter()
@@ -81,26 +105,44 @@ fn part1(map: MapRef) -> usize {
                 .map(move |(x, _)| (x, y))
         })
         .next()
-        .unwrap();
-    let mut ipos: Coord = pos.into();
-    let mut count = 0;
+        .unwrap()
+        .into()
+}
+
+fn part2(map: MapRef) -> usize {
+    let mut ipos = start_pos(map);
     let mut dir = North;
-    let mut visited: Vec<Vec<bool>> = vec![vec![false; map[0].len()]; map.len()];
+    let mut visited: Vec<Vec<Option<Dir>>> = vec![vec![None; map[0].len()]; map.len()];
+    let mut count = 0;
     while ipos.valid_for(map) {
-        visited[ipos.y()][ipos.x()] = true;
         let next = ipos + dir.to_coord();
-        if next.valid_for(map) && map[next.y()][next.x()] != b'.' {
+        if next.valid_for(map)
+            && map[next.y()][next.x()] != b'#'
+            && visited_same_dir(map, ipos, dir.rotate(), &visited)
+        {
+            count += 1;
+        }
+        visited[ipos.y()][ipos.x()] = Some(dir);
+        if next.valid_for(map) && map[next.y()][next.x()] == b'#' {
             dir = dir.rotate();
             continue;
         }
         ipos = next;
     }
-    visited.into_iter().flatten().filter(|x| *x).count()
+    count
+    //visited.into_iter().flatten().filter(|x| *x).count()
 }
 
-fn part2(map: MapRef) -> usize {
-    todo!();
-    42
+fn visited_same_dir(map: MapRef, mut pos: Coord, dir: Dir, visited: &[Vec<Option<Dir>>]) -> bool {
+    while pos.valid_for(map) {
+        if let Some(d) = visited[pos.y()][pos.x()] {
+            if d == dir {
+                return true;
+            }
+        }
+        pos = pos + dir.to_coord();
+    }
+    false
 }
 
 #[test]
@@ -108,8 +150,8 @@ fn test() {
     let things = parse(sample!());
     //part 1
     let res = part1(&things);
-    assert_eq!(res, 42);
+    assert_eq!(res, 41);
     //part 2
     let res = part2(&things);
-    assert_eq!(res, 42);
+    assert_eq!(res, 6);
 }
