@@ -79,3 +79,74 @@ fn gcd(mut a: usize, mut b: usize) -> usize {
     }
     a
 }
+
+/*
+ * Grid library
+ */
+pub type Map = Vec<Vec<u8>>;
+pub type MapRef<'a> = &'a [Vec<u8>];
+pub type MapRefMut<'a> = &'a mut [Vec<u8>];
+pub fn grid(s: &str) -> Map {
+    s.lines().map(|l| l.bytes().collect()).collect()
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Dir {
+    North = 0,
+    East,
+    South,
+    West,
+}
+use crate::Dir::*;
+impl Dir {
+    /* TODO: better direction operations */
+    pub fn rotate90(self) -> Dir {
+        ((self as u8 + 1) % 4).into()
+    }
+}
+impl From<Dir> for Coord {
+    fn from(d: Dir) -> Coord {
+        match d {
+            North => Coord(0, -1),
+            East => Coord(1, 0),
+            South => Coord(0, 1),
+            West => Coord(-1, 0),
+        }
+    }
+}
+impl From<u8> for Dir {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => North,
+            1 => East,
+            2 => South,
+            3 => West,
+            _ => unreachable!(),
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct Coord(i32, i32);
+impl Coord {
+    pub fn y(&self) -> usize {
+        self.1 as usize
+    }
+    pub fn x(&self) -> usize {
+        self.0 as usize
+    }
+    pub fn valid_for(&self, map: MapRef) -> bool {
+        self.0 >= 0 && self.0 < map[0].len() as i32 && self.1 >= 0 && self.1 < map.len() as i32
+    }
+}
+impl From<(usize, usize)> for Coord {
+    fn from(value: (usize, usize)) -> Self {
+        Self(value.0 as i32, value.1 as i32)
+    }
+}
+impl std::ops::Add<Dir> for Coord {
+    type Output = Self;
+
+    fn add(self, rhs: Dir) -> Self::Output {
+        let dir: Coord = rhs.into();
+        Self(self.0 + dir.0, self.1 + dir.1)
+    }
+}
