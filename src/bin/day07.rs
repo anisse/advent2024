@@ -51,8 +51,7 @@ fn eval2(a: u64, b: &[u64], expected: u64) -> bool {
 }
 
 fn concat(a: u64, b: u64) -> u64 {
-    //10_f64.powi(((b as f64).log10() + 1.0).floor() as i32) as u64 * a + b
-    format!("{a}{b}").parse::<u64>().unwrap()
+    10_f64.powi(((b as f64).log10() + 1.0).floor() as i32) as u64 * a + b
 }
 #[test]
 fn test_concat() {
