@@ -19,35 +19,37 @@ fn part1<I>(things: I) -> u64
 where
     I: Iterator<Item = ParsedItem>,
 {
-    things
-        .filter(|(result, operands)| eval1(operands[0], &operands[1..], *result))
-        .map(|(result, _)| result)
-        .sum()
+    calibration(things, &[|a, b| a + b, |a, b| a * b])
 }
-
-fn eval1(a: u64, b: &[u64], expected: u64) -> bool {
-    if b.len() == 1 {
-        return a * b[0] == expected || a + b[0] == expected;
-    }
-    eval1(a + b[0], &b[1..], expected) || eval1(a * b[0], &b[1..], expected)
-}
-
 fn part2<I>(things: I) -> u64
 where
     I: Iterator<Item = ParsedItem>,
 {
-    things
-        .filter(|(result, operands)| eval2(operands[0], &operands[1..], *result))
+    calibration(things, &[|a, b| a + b, |a, b| a * b, concat])
+}
+fn calibration<I>(equations: I, operators: &[fn(u64, u64) -> u64]) -> u64
+where
+    I: Iterator<Item = ParsedItem>,
+{
+    equations
+        .filter(|(result, operands)| {
+            eval_equations(operands[0], &operands[1..], *result, operators)
+        })
         .map(|(result, _)| result)
         .sum()
 }
-fn eval2(a: u64, b: &[u64], expected: u64) -> bool {
-    if b.len() == 1 {
-        return a * b[0] == expected || a + b[0] == expected || concat(a, b[0]) == expected;
+
+fn eval_equations(
+    acc: u64,
+    operands: &[u64],
+    expected: u64,
+    operators: &[fn(u64, u64) -> u64],
+) -> bool {
+    let mut results = operators.iter().map(|f| f(acc, operands[0]));
+    if operands.len() == 1 {
+        return results.any(|r| r == expected);
     }
-    eval2(a + b[0], &b[1..], expected)
-        || eval2(a * b[0], &b[1..], expected)
-        || eval2(concat(a, b[0]), &b[1..], expected)
+    results.any(|r| eval_equations(r, &operands[1..], expected, operators))
 }
 
 fn concat(a: u64, b: u64) -> u64 {
