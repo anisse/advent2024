@@ -26,15 +26,14 @@ fn part1(map: MapRef) -> usize {
         .for_each(|(c, coord)| {
             (*locations.entry(c).or_default()).push(coord);
         });
-    dbg!(&locations);
     let set: HashSet<Coord> = locations
         .into_iter()
-        .flat_map(|(c, coords)| {
+        .flat_map(|(_c, coords)| {
             (0..coords.len()).flat_map(move |i| {
                 ((i + 1)..coords.len()).flat_map({
                     let coords = coords.clone();
                     move |j| {
-                        println!("For {}: {:?} vs {:?}", c as char, coords[i], coords[j]);
+                        //println!("For {}: {:?} vs {:?}", _c as char, coords[i], coords[j]);
                         let xdiff = coords[i].ix() - coords[j].ix();
                         let ydiff = coords[i].iy() - coords[j].iy();
                         [
@@ -46,23 +45,79 @@ fn part1(map: MapRef) -> usize {
                 })
             })
         })
+        /*
+            .inspect(|c| {
+                println!("{c:?}");
+            })
+        */
+        .filter(|c| c.valid_for(map))
+        //.filter(|c| map[c.y()][c.x()] == b'.')
+        /*
+        .inspect(|_| {
+            println!("valid");
+        })
+        */
+        .collect();
+    set.len()
+}
+
+fn part2(map: MapRef) -> usize {
+    let mut locations: HashMap<u8, Vec<Coord>> = HashMap::new();
+    map.iter()
+        .enumerate()
+        .flat_map(move |(y, l)| {
+            l.iter()
+                .enumerate()
+                .filter(|(_, c)| **c != b'.')
+                .map(move |(x, c)| (*c, Coord::from((x, y))))
+        })
+        .for_each(|(c, coord)| {
+            (*locations.entry(c).or_default()).push(coord);
+        });
+    let xmax = map[0].len() as i32;
+    let ymax = map[0].len() as i32;
+    let set: HashSet<Coord> = locations
+        .into_iter()
+        .flat_map(|(_c, coords)| {
+            (0..coords.len()).flat_map(move |i| {
+                ((i + 1)..coords.len()).flat_map({
+                    let coords = coords.clone();
+                    move |j| {
+                        println!("For {}: {:?} vs {:?}", _c as char, coords[i], coords[j]);
+                        let xdiff = coords[i].ix() - coords[j].ix();
+                        let ydiff = coords[i].iy() - coords[j].iy();
+                        (0..=(xmax))
+                            .map({
+                                let coords = coords.clone();
+                                move |k| {
+                                    Coord::from((
+                                        coords[i].ix() + k * xdiff,
+                                        coords[i].iy() + k * ydiff,
+                                    ))
+                                }
+                            })
+                            .chain((0..=xmax).map({
+                                let coords = coords.clone();
+                                move |k| {
+                                    Coord::from((
+                                        coords[j].ix() - k * xdiff,
+                                        coords[j].iy() - k * ydiff,
+                                    ))
+                                }
+                            }))
+                    }
+                })
+            })
+        })
         .inspect(|c| {
             println!("{c:?}");
         })
         .filter(|c| c.valid_for(map))
-        //.filter(|c| map[c.y()][c.x()] == b'.')
         .inspect(|_| {
             println!("valid");
         })
         .collect();
     set.len()
-}
-
-fn part2(things: MapRef) -> usize {
-    for _ in things {
-        todo!()
-    }
-    42
 }
 
 #[test]
@@ -72,6 +127,21 @@ fn test() {
     let res = part1(&things.clone());
     assert_eq!(res, 14);
     //part 2
+    assert_eq!(
+        9,
+        part2(&parse(
+            "T.........
+...T......
+.T........
+..........
+..........
+..........
+..........
+..........
+..........
+.........."
+        ))
+    );
     let res = part2(&things);
-    assert_eq!(res, 42);
+    assert_eq!(res, 34);
 }
