@@ -133,6 +133,12 @@ impl Coord {
     pub fn x(&self) -> usize {
         self.0 as usize
     }
+    pub fn iy(&self) -> i32 {
+        self.1
+    }
+    pub fn ix(&self) -> i32 {
+        self.0
+    }
     pub fn valid_for(&self, map: MapRef) -> bool {
         self.0 >= 0 && self.0 < map[0].len() as i32 && self.1 >= 0 && self.1 < map.len() as i32
     }
@@ -140,6 +146,11 @@ impl Coord {
 impl From<(usize, usize)> for Coord {
     fn from(value: (usize, usize)) -> Self {
         Self(value.0 as i32, value.1 as i32)
+    }
+}
+impl From<(i32, i32)> for Coord {
+    fn from(value: (i32, i32)) -> Self {
+        Self(value.0, value.1)
     }
 }
 impl std::ops::Add<Dir> for Coord {
