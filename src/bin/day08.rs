@@ -75,7 +75,6 @@ fn part2(map: MapRef) -> usize {
             (*locations.entry(c).or_default()).push(coord);
         });
     let xmax = map[0].len() as i32;
-    let ymax = map[0].len() as i32;
     let set: HashSet<Coord> = locations
         .into_iter()
         .flat_map(|(_c, coords)| {
@@ -83,7 +82,7 @@ fn part2(map: MapRef) -> usize {
                 ((i + 1)..coords.len()).flat_map({
                     let coords = coords.clone();
                     move |j| {
-                        println!("For {}: {:?} vs {:?}", _c as char, coords[i], coords[j]);
+                        //println!("For {}: {:?} vs {:?}", _c as char, coords[i], coords[j]);
                         let xdiff = coords[i].ix() - coords[j].ix();
                         let ydiff = coords[i].iy() - coords[j].iy();
                         (0..=(xmax))
@@ -109,13 +108,17 @@ fn part2(map: MapRef) -> usize {
                 })
             })
         })
-        .inspect(|c| {
-            println!("{c:?}");
-        })
+        /*
+            .inspect(|c| {
+                println!("{c:?}");
+            })
+        */
         .filter(|c| c.valid_for(map))
+        /*
         .inspect(|_| {
             println!("valid");
         })
+            */
         .collect();
     set.len()
 }
