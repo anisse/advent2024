@@ -10,7 +10,7 @@ fn main() {
 }
 type ParsedItem = u8;
 fn parse(input: &str) -> impl Iterator<Item = ParsedItem> + Clone + '_ {
-    input.lines().next().unwrap().bytes()
+    input.lines().next().unwrap().bytes().map(|b| b - b'0')
 }
 #[derive(Debug, Clone, Copy)]
 enum Block {
@@ -36,20 +36,27 @@ where
         .collect();
     let mut end = disk.len() - 1;
     let mut start = 0;
-    while end > start {
+    while end > start && start < disk.len() {
         while let Block::Id(_) = disk[start] {
             start += 1;
+            if start >= disk.len() {
+                break;
+            }
         }
         while let Block::Space = disk[end] {
             end -= 1;
             disk.pop();
         }
+        if start >= disk.len() {
+            break;
+        }
         if let Block::Space = disk[start] {
             if let Block::Id(_) = disk[end] {
-                (disk[start], disk[end]) = (disk[start], disk[end]);
+                (disk[start], disk[end]) = (disk[end], disk[start]);
             }
         }
     }
+    dbg!(&disk);
     disk.into_iter()
         .enumerate()
         .map(|(i, b)| {
@@ -77,7 +84,7 @@ fn test() {
     let things = parse(sample!());
     //part 1
     let res = part1(things.clone());
-    assert_eq!(res, 42);
+    assert_eq!(res, 1928);
     //part 2
     let res = part2(things);
     assert_eq!(res, 42);
