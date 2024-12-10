@@ -97,6 +97,7 @@ pub enum Dir {
     West,
 }
 use crate::Dir::*;
+pub const DIRS4: [Dir; 4] = [North, East, South, West];
 impl Dir {
     /* TODO: better direction operations */
     pub fn rotate90(self) -> Dir {
