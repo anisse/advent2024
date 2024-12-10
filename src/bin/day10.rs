@@ -50,7 +50,36 @@ fn trail(map: MapRef, c: Coord, next: u8) -> Option<HashSet<Coord>> {
 }
 
 fn part2(map: MapRef) -> usize {
-    todo!();
+    map.iter()
+        .enumerate()
+        .flat_map(move |(y, l)| {
+            l.iter()
+                .enumerate()
+                .filter(|(_, c)| **c == b'0')
+                .map(move |(x, _)| Coord::from((x, y)))
+        })
+        .map(|c| trail_rating(map, c, b'1'))
+        //.map(|c| if c > 0 { c - 1 } else { 0 })
+        .sum()
+}
+fn trail_rating(map: MapRef, c: Coord, next: u8) -> usize {
+    DIRS4
+        .iter()
+        .map(|dir| {
+            let pos = c + *dir;
+            if !pos.valid_for(map) {
+                return 0;
+            }
+            let val = map[pos.y()][pos.x()];
+            if val == next {
+                if val == b'9' {
+                    return 1;
+                }
+                return trail_rating(map, pos, next + 1);
+            }
+            0
+        })
+        .sum()
 }
 
 #[test]
