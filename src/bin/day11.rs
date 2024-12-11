@@ -83,6 +83,6 @@ fn test() {
     let res = part1(&things);
     assert_eq!(res, 55312);
     //part 2
-    //let res = part2(&things);
-    ////assert_eq!(res, 42);
+    let res = part2(&things);
+    assert_eq!(res, 65601038650482);
 }
