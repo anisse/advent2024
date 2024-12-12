@@ -103,6 +103,9 @@ impl Dir {
     pub fn rotate90(self) -> Dir {
         ((self as u8 + 1) % 4).into()
     }
+    pub fn rotate180(self) -> Dir {
+        ((self as u8 + 2) % 4).into()
+    }
 }
 impl From<Dir> for Coord {
     fn from(d: Dir) -> Coord {
@@ -140,7 +143,7 @@ impl Coord {
     pub fn ix(&self) -> i32 {
         self.0
     }
-    pub fn valid_for(&self, map: MapRef) -> bool {
+    pub fn valid_for<T>(&self, map: &[Vec<T>]) -> bool {
         self.0 >= 0 && self.0 < map[0].len() as i32 && self.1 >= 0 && self.1 < map.len() as i32
     }
 }
