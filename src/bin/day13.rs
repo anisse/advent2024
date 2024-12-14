@@ -115,8 +115,8 @@ fn test() {
     let things = parse(sample!());
     //part 1
     let res = part1(things.clone());
-    assert_eq!(res, 42);
+    assert_eq!(res, 480);
     //part 2
     let res = part2(things);
-    assert_eq!(res, 42);
+    assert_eq!(res, 875318608908);
 }
