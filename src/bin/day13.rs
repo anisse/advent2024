@@ -35,13 +35,13 @@ fn min_token(eq: ParsedItem) -> u64 {
     let arr: Vec<_> = (0..=100)
         .flat_map(|i| (0..=100).map(move |j| (i, j)))
         .filter(|(i, j)| eq[AX] * i + eq[BX] * j == eq[PX] && eq[AY] * i + eq[BY] * j == eq[PY])
+        /*
         .inspect(|(i, j)| {
             println!(
                 "{} * {i} + {} * {j} = {}\t\t{} * {i} + {} * {j} = {}",
                 eq[AX], eq[BX], eq[PX], eq[AY], eq[BY], eq[PY]
             );
         })
-        /*
             .inspect(|(i, j)| {
                 println!(
                     "==? {}\t {} / {} = {} ;\t {} / {} = {} ;\t {} / {} = {}",
