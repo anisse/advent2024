@@ -65,17 +65,17 @@ where
     I: Iterator<Item = ParsedItem> + Clone,
 {
     println!(
-        "Merged period factors: {:?}",
+        "{}",
         robots
-            .clone()
-            .inspect(|r| {
-                println!(
-                    "Robot has X {} has prime factors: {:?}",
-                    r.vel.ix(),
-                    prime_factors_below_100(r.vel.ix())
-                );
+            .flat_map(|r| {
+                [
+                    // Basically the LCM of all x and y periods
+                    prime_factors_below_100(r.vel.ix()),
+                    prime_factors_below_100(r.vel.iy()),
+                    HashMap::from([(width as u64, 1), (height as u64, 1)]),
+                ]
+                .into_iter()
             })
-            .map(|r| prime_factors_below_100(r.vel.ix()))
             .reduce(|mut f1, f2| {
                 f2.into_iter().for_each(|(key, mut value)| {
                     let e = f1.entry(key).or_insert(0);
@@ -83,49 +83,13 @@ where
                 });
                 f1
             })
-            .map(
-                |factors| factors.into_iter().fold(width as u128, |total, (k, v)| {
-                    println!("Total: {total} * {k} * {v}");
-                    total * k as u128 * v as u128
-                })
-            )
             .unwrap()
+            .into_iter()
+            .map(|(k, v)| format!("{k} * {v}"))
+            .collect::<Vec<String>>()
+            .join(" * "),
     );
-    /*
-    println!(
-        "Max Y period: {}",
-        robots
-            .clone()
-            .map(|r| lcm(r.vel.iy().unsigned_abs() as usize, height as usize))
-            .inspect(|period| {
-                println!("Robot has y period of {period}");
-            })
-            .max()
-            .unwrap()
-    );
-    */
     0
-    /*
-    let robots: Vec<_> = robots.collect();
-    for i in 1..1000 {
-        let mut map = vec![vec![b' '; width as usize]; height as usize];
-        println!("After {i} iterations:");
-        robots
-            .iter()
-            .map(|r| {
-                Coord::from((
-                    (r.pos.ix() + r.vel.ix() * i + i * width) % width,
-                    (r.pos.iy() + r.vel.iy() * i + i * height) % height,
-                ))
-            })
-            .for_each(|pos| {
-                map[pos.y()][pos.x()] = b'x';
-            });
-        print_map(&map);
-        println!();
-    }
-    0
-    */
 }
 
 fn prime_factors_below_100(mut n: i32) -> HashMap<u64, u64> {
