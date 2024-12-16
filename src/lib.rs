@@ -165,3 +165,12 @@ impl std::ops::Add<Dir> for Coord {
         Self(self.0 + dir.0, self.1 + dir.1)
     }
 }
+
+pub fn print_map(map: &[Vec<u8>]) {
+    map.iter().for_each(|l| {
+        l.iter().for_each(|c| {
+            print!("{}", *c as char);
+        });
+        println!();
+    })
+}
