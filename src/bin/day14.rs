@@ -67,9 +67,9 @@ where
     //let robots: Vec<_> = robots.collect();
     let res = (0..(width * height))
         .map(|i| (i, part1(robots.clone(), width, height, i)))
-        .fold((0, 0), |(imax, max), (i, v)| {
+        .fold((0, usize::MAX), |(imin, min), (i, v)| {
             println!("{i}\t {v}");
-            if v > max { (i, v) } else { (imax, max) }
+            if v < min { (i, v) } else { (imin, min) }
         })
         .0;
     let mut map = vec![vec![b' '; width as usize]; height as usize];
