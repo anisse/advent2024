@@ -4,7 +4,7 @@ use advent2024::*;
 fn main() {
     let robots = parse(input!());
     //part 1
-    let res = part1(robots.clone(), 101, 103);
+    let res = part1(robots.clone(), 101, 103, 100);
     println!("Part 1: {}", res);
     //part 2
     let res = part2(robots, 101, 103);
@@ -24,7 +24,7 @@ fn parse(input: &str) -> impl Iterator<Item = ParsedItem> + Clone + '_ {
         }
     })
 }
-fn part1<I>(robots: I, width: i32, height: i32) -> usize
+fn part1<I>(robots: I, width: i32, height: i32, period: i32) -> usize
 where
     I: Iterator<Item = ParsedItem>,
 {
@@ -32,8 +32,8 @@ where
     robots
         .map(|r| {
             Coord::from((
-                (r.pos.ix() + r.vel.ix() * 100 + 100 * width) % width,
-                (r.pos.iy() + r.vel.iy() * 100 + 100 * height) % height,
+                (r.pos.ix() + r.vel.ix() * period + period * width) % width,
+                (r.pos.iy() + r.vel.iy() * period + period * height) % height,
             ))
         })
         .for_each(|pos| {
@@ -60,61 +60,39 @@ where
     quadrants.iter().product()
 }
 
-fn part2<I>(robots: I, width: i32, height: i32) -> usize
+fn part2<I>(robots: I, width: i32, height: i32) -> i32
 where
     I: Iterator<Item = ParsedItem> + Clone,
 {
-    println!(
-        "{}",
-        robots
-            .flat_map(|r| {
-                [
-                    // Basically the LCM of all x and y periods
-                    prime_factors_below_100(r.vel.ix()),
-                    prime_factors_below_100(r.vel.iy()),
-                    HashMap::from([(width as u64, 1), (height as u64, 1)]),
-                ]
-                .into_iter()
-            })
-            .reduce(|mut f1, f2| {
-                f2.into_iter().for_each(|(key, mut value)| {
-                    let e = f1.entry(key).or_insert(0);
-                    *e = *e.max(&mut value);
-                });
-                f1
-            })
-            .unwrap()
-            .into_iter()
-            .map(|(k, v)| format!("{k} * {v}"))
-            .collect::<Vec<String>>()
-            .join(" * "),
-    );
-    0
-}
+    //let robots: Vec<_> = robots.collect();
+    let res = (0..(width * height))
+        .map(|i| (i, part1(robots.clone(), width, height, i)))
+        .fold((0, 0), |(imax, max), (i, v)| {
+            println!("{i}\t {v}");
+            if v > max { (i, v) } else { (imax, max) }
+        })
+        .0;
+    let mut map = vec![vec![b' '; width as usize]; height as usize];
+    println!("After {res} iterations:");
+    robots
+        .map(|r| {
+            Coord::from((
+                (r.pos.ix() + r.vel.ix() * res + res * width) % width,
+                (r.pos.iy() + r.vel.iy() * res + res * height) % height,
+            ))
+        })
+        .for_each(|pos| {
+            map[pos.y()][pos.x()] = b'x';
+        });
+    print_map(&map);
 
-fn prime_factors_below_100(mut n: i32) -> HashMap<u64, u64> {
-    assert!(n <= 103);
-    let primes: Vec<u64> = vec![
-        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
-        97, 101, 103,
-    ];
-    let mut factors = HashMap::new();
-    let mut i = 0;
-    while n != 1 && i < primes.len() {
-        if n % primes[i] as i32 == 0 {
-            n /= primes[i] as i32;
-            *factors.entry(primes[i]).or_insert(0) += 1;
-        } else {
-            i += 1;
-        }
-    }
-    factors
+    res
 }
 
 #[test]
 fn test() {
     let robots = parse(sample!());
     //part 1
-    let res = part1(robots.clone(), 11, 7);
+    let res = part1(robots.clone(), 11, 7, 100);
     assert_eq!(res, 12);
 }
