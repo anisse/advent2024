@@ -116,5 +116,5 @@ fn test() {
     let robots = parse(sample!());
     //part 1
     let res = part1(robots.clone(), 11, 7);
-    assert_eq!(res, 42);
+    assert_eq!(res, 12);
 }
