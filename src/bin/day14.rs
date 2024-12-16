@@ -12,6 +12,11 @@ struct Robot {
     pos: Coord,
     vel: Coord,
 }
+impl AsRef<Robot> for Robot {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
 type ParsedItem = Robot;
 fn parse(input: &str) -> impl Iterator<Item = ParsedItem> + Clone + '_ {
     input.lines().map(|l| {
@@ -22,16 +27,17 @@ fn parse(input: &str) -> impl Iterator<Item = ParsedItem> + Clone + '_ {
         }
     })
 }
-fn part1<I>(robots: I, width: i32, height: i32, period: i32) -> usize
+fn part1<I, T>(robots: I, width: i32, height: i32, period: i32) -> usize
 where
-    I: Iterator<Item = ParsedItem>,
+    I: Iterator<Item = T>,
+    T: AsRef<ParsedItem>,
 {
     let mut quadrants = [0_usize; 4];
     robots
         .map(|r| {
             Coord::from((
-                (r.pos.ix() + r.vel.ix() * period + period * width) % width,
-                (r.pos.iy() + r.vel.iy() * period + period * height) % height,
+                (r.as_ref().pos.ix() + r.as_ref().vel.ix() * period + period * width) % width,
+                (r.as_ref().pos.iy() + r.as_ref().vel.iy() * period + period * height) % height,
             ))
         })
         .for_each(|pos| {
@@ -62,10 +68,10 @@ fn part2<I>(robots: I, width: i32, height: i32) -> i32
 where
     I: Iterator<Item = ParsedItem> + Clone,
 {
-    //let robots: Vec<_> = robots.collect();
+    let robots: Vec<_> = robots.collect();
     #[allow(clippy::let_and_return)]
     let res = (0..(width * height))
-        .map(|i| (i, part1(robots.clone(), width, height, i)))
+        .map(|i| (i, part1(robots.iter(), width, height, i)))
         .fold((0, usize::MAX), |(imin, min), (i, v)| {
             //println!("{i}\t {v}");
             if v < min { (i, v) } else { (imin, min) }
