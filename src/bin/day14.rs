@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use advent2024::*;
 fn main() {
     let robots = parse(input!());
@@ -65,13 +63,15 @@ where
     I: Iterator<Item = ParsedItem> + Clone,
 {
     //let robots: Vec<_> = robots.collect();
+    #[allow(clippy::let_and_return)]
     let res = (0..(width * height))
         .map(|i| (i, part1(robots.clone(), width, height, i)))
         .fold((0, usize::MAX), |(imin, min), (i, v)| {
-            println!("{i}\t {v}");
+            //println!("{i}\t {v}");
             if v < min { (i, v) } else { (imin, min) }
         })
         .0;
+    /*
     let mut map = vec![vec![b' '; width as usize]; height as usize];
     println!("After {res} iterations:");
     robots
@@ -85,6 +85,7 @@ where
             map[pos.y()][pos.x()] = b'x';
         });
     print_map(&map);
+    */
 
     res
 }
