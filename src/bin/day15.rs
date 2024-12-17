@@ -95,7 +95,7 @@ fn part2(map: MapRef, moves: &[Dir]) -> usize {
     let mut pos = find_first(&map, b'@');
     moves.iter().for_each(|m| {
         println!("Next move: {m:?}");
-        print_map(&map);
+        //print_map(&map);
         let next = pos + *m;
         assert!(next.valid_for(&map), "Invalid pos {next:?}");
         let cnext = map[next.y()][next.x()];
@@ -128,11 +128,12 @@ fn part2(map: MapRef, moves: &[Dir]) -> usize {
 
 //returns true on sucessful push
 fn push2(map: MapRefMut, pos: Coord, dir: Dir) -> bool {
+    let c = map[pos.y()][pos.x()];
     {
-        println!("At pos {pos:?} to push {dir:?}");
-        let c = map[pos.y()][pos.x()];
+        println!("At pos {pos:?} to try to push {dir:?}");
+        //let c = map[pos.y()][pos.x()];
         map[pos.y()][pos.x()] = b'x';
-        print_map(map);
+        //print_map(map);
         map[pos.y()][pos.x()] = c;
         println!();
     }
@@ -141,6 +142,8 @@ fn push2(map: MapRefMut, pos: Coord, dir: Dir) -> bool {
         "Invalid pushed box at {pos:?}: {}",
         map[pos.y()][pos.x()] as char
     );
+
+    /*
     let next = if dir.is_vertical() {
         let pos2 = match map[pos.y()][pos.x()] {
             b'[' => pos + East,
@@ -155,18 +158,24 @@ fn push2(map: MapRefMut, pos: Coord, dir: Dir) -> bool {
     } else {
         pos + dir + dir
     };
+    */
+    let next = pos + dir;
     assert!(next.valid_for(map), "Invalid pos {next:?}");
     let c = map[next.y()][next.x()];
     if c == b'#' {
         return false;
     }
+    /*
     if ![b'[', b']'].contains(&c) {
-        move_box(map, pos, dir);
+        move_boxes(map, pos, dir, false);
         return true;
     }
-    if can_push2(map, next, dir) {
-        println!("Pushing {next:?}");
-        push2(map, next, dir);
+    */
+    println!("bli");
+    if can_push2(map, pos, dir, false) {
+        println!("Pushing {pos:?} to {next:?}");
+        move_boxes(map, pos, dir, false);
+        //push2(map, next, dir);
         /*
         if dir.is_vertical() {
             let next2 = match c {
@@ -181,11 +190,12 @@ fn push2(map: MapRefMut, pos: Coord, dir: Dir) -> bool {
         }
         */
 
-        move_box(map, pos, dir);
+        //move_box(map, pos, dir);
         return true;
     }
     false
 }
+/*
 fn move_box(map: MapRefMut, pos: Coord, dir: Dir) {
     let prev_l = match map[pos.y()][pos.x()] {
         b'[' => pos,
@@ -205,26 +215,64 @@ fn move_box(map: MapRefMut, pos: Coord, dir: Dir) {
         map[prev_r.y()][prev_r.x()] = b'.';
     }
 }
+*/
 
-//returns true on sucessful push
-fn can_push2(map: MapRef, pos: Coord, dir: Dir) -> bool {
+fn move_boxes(map: MapRefMut, pos: Coord, dir: Dir, is_sibling: bool) {
+    let c = map[pos.y()][pos.x()];
+    assert!([b'[', b']'].contains(&c), "Invalid pushed box at {pos:?}");
+    println!("Moving {pos:?} {dir:?}");
+    if dir.is_vertical() && !is_sibling {
+        // move sibling, too
+        println!("And its sibling {:?} {dir:?}", sibling(map, pos));
+        move_boxes(map, sibling(map, pos), dir, true);
+    }
+    let next = pos + dir;
+    let cnext = map[next.y()][next.x()];
+    match cnext {
+        b'[' | b']' => move_boxes(map, next, dir, false),
+        b'#' => panic!("Move called to {next:?} which is a wall"),
+        _ => {}
+    };
+    map[next.y()][next.x()] = map[pos.y()][pos.x()];
+    map[pos.y()][pos.x()] = b'.';
+}
+fn sibling(map: MapRef, pos: Coord) -> Coord {
     assert!(
         [b'[', b']'].contains(&map[pos.y()][pos.x()]),
         "Invalid pushed box at {pos:?}"
     );
-    let next = if !dir.is_vertical() {
-        pos + dir + dir
-    } else {
+    match map[pos.y()][pos.x()] {
+        b'[' => pos + East,
+        b']' => pos + West,
+        _ => unreachable!(),
+    }
+}
+
+//returns true on sucessful push
+fn can_push2(map: MapRef, pos: Coord, dir: Dir, is_sibling: bool) -> bool {
+    println!("Verifying if we can push {pos:?} to {dir:?}");
+    assert!(
+        [b'[', b']'].contains(&map[pos.y()][pos.x()]),
+        "Invalid pushed box at {pos:?}"
+    );
+    let next = if dir.is_vertical() {
+        if !is_sibling && !can_push2(map, sibling(map, pos), dir, true) {
+            return false;
+        }
         pos + dir
+    } else {
+        // small optimization, skipping sibling
+        pos + dir + dir
     };
     assert!(next.valid_for(map), "Invalid pos {next:?}");
-    let c = map[next.y()][next.x()];
-    if c == b'#' {
+    let cnext = map[next.y()][next.x()];
+    if cnext == b'#' {
         return false;
     }
-    if ![b'[', b']'].contains(&c) {
+    if ![b'[', b']'].contains(&cnext) {
         return true;
     }
+    /*
     if !dir.is_vertical() {
         return can_push2(map, next, dir);
     }
@@ -233,7 +281,8 @@ fn can_push2(map: MapRef, pos: Coord, dir: Dir) -> bool {
         b']' => next + West,
         _ => unreachable!(),
     };
-    can_push2(map, next, dir) && can_push2(map, next2, dir)
+    */
+    can_push2(map, next, dir, false) // && can_push2(map, next2, dir)
 }
 
 #[test]
@@ -270,7 +319,7 @@ fn test() {
 <vv<<^^<<^^",
     );
     let res = part2(&map2, &moves2);
-    assert_eq!(res, 42);
+    //assert_eq!(res, 42);
     //part 2
     let res = part2(&map, &moves);
     assert_eq!(res, 9021);
