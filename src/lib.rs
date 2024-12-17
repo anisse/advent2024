@@ -106,6 +106,9 @@ impl Dir {
     pub fn rotate180(self) -> Dir {
         ((self as u8 + 2) % 4).into()
     }
+    pub fn is_vertical(self) -> bool {
+        self == North || self == South
+    }
 }
 impl From<Dir> for Coord {
     fn from(d: Dir) -> Coord {
