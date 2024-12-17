@@ -174,3 +174,16 @@ pub fn print_map(map: &[Vec<u8>]) {
         println!();
     })
 }
+
+pub fn iter_items(map: MapRef) -> impl Iterator<Item = (Coord, u8)> {
+    map.iter()
+        .enumerate()
+        .flat_map(|(y, l)| l.iter().enumerate().map(move |(x, c)| ((x, y).into(), *c)))
+}
+pub fn find_first(map: MapRef, start: u8) -> Coord {
+    iter_items(map)
+        .filter(|(_, c)| *c == start)
+        .map(|(coord, _)| coord)
+        .next()
+        .unwrap()
+}
