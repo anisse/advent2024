@@ -89,7 +89,7 @@ pub type MapRefMut<'a> = &'a mut [Vec<u8>];
 pub fn grid(s: &str) -> Map {
     s.lines().map(|l| l.bytes().collect()).collect()
 }
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Dir {
     North = 0,
     East,
@@ -105,6 +105,9 @@ impl Dir {
     }
     pub fn rotate180(self) -> Dir {
         ((self as u8 + 2) % 4).into()
+    }
+    pub fn rotate270(self) -> Dir {
+        ((self as u8 + 3) % 4).into()
     }
     pub fn is_vertical(self) -> bool {
         self == North || self == South
